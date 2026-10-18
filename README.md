@@ -21,20 +21,20 @@
 
 ## ✨ Fitur Unggulan
 
-### 1. 🐱 Living Companion (Mata Interaktif)
+### 1. 🐱 Living Companion
 - **Real-Time Mouse Tracking**: Mata companion mengikuti arah kursor mouse secara presisi dan halus menggunakan algoritma *Lerp* (tanpa re-render React berlebih, 0% CPU lag).
 - **Perilaku Otonom (Autonomous Living AI)**:
   - Berkedip alami (*blinking*) dengan kemungkinan *playful double-blink*.
   - Melirik santai (*saccades*), mengantuk sejenak lalu bangun kaget, memiringkan kepala penasaran, mengedipkan sebelah mata (*wink*), senyum gembira `(^_^)`, hingga ekspresi langka mata hati cinta `(♥_♥)`.
 - **Sentuh & Mainkan**: Klik mata untuk berinteraksi, double-klik untuk membuka/menutup Drotch.
 
-### 2. ⚡ Real-Time Typing Reactive (Efek Saat Mengetik)
+### 2. ⚡ Real-Time Typing Reactive
 - **Gaze Focus ke Keyboard**: Saat kamu mengetik (coding, chatting, browsing), mata Drotch otomatis menunduk ke bawah memperhatikan keyboard dan bergerak lincah ke kiri-kanan mengikuti ritme jemari kamu.
 - **Ambient Neon Wave**: Garis cahaya di bawah notch menyala dan bergelombang dinamis selaras dengan kecepatan mengetikmu (*keystrokes per second*).
 - **Celebration Cheer**: Saat kamu selesai mengetik, companion menyambut dengan lompatan ceria gembira `(^o^)`!
 - **100% Privacy-Safe (Zero Keylogging)**: Menggunakan Win32 `WH_KEYBOARD_LL` hook yang **hanya menghitung frekuensi ketukan tanpa membaca atau merekam isi ketikan sama sekali**.
 
-### 3. 🎵 Musik & Lirik Tersinkronisasi (Split View)
+### 3. 🎵 Musik & Lirik Tersinkronisasi
 - **Windows SMTC Integration**: Mendukung Spotify, Apple Music, YouTube Music, browser Chrome/Edge, dan media player lainnya secara native.
 - **Synced Lyrics (LRCLIB)**: Lirik lagu bergulir otomatis sesuai detik lagu, baris aktif di-highlight dengan efek glow, dan kamu bisa mengklik baris lirik mana pun untuk melompat (*seek*) lagu!
 - **Spinning Vinyl Record**: Piringan hitam berputar halus dengan gaya Apple Music vector yang estetik.
@@ -44,7 +44,7 @@
 - Menggunakan loopback audio **Windows WASAPI** di backend Rust.
 - Spektrum frekuensi suara langsung divisualisasikan dalam bentuk gelombang audio di bagian bawah notch dan equalizer header bar secara akurat dan responsif.
 
-### 5. 🎛️ 6 Panel Carousel Navigasi (Swipe & Wheel)
+### 5. 🎛️ 6 Panel Carousel Navigasi 
 Geser (*drag swipe*) atau gunakan *mouse wheel* untuk berpindah antar panel:
 1. **Music Player**: Kontrol pemutar lagu ⏮ ⏯ ⏭, seekbar interaktif, dan tombol ekspansi lirik.
 2. **Weather**: Ramalan cuaca real-time dari Open-Meteo (suhu, deskripsi, kelembapan, kecepatan angin) dengan preset kota cepat.
