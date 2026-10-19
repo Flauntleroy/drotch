@@ -43,7 +43,7 @@ export function LyricsMini() {
         <IconMic size={14} color="#38bdf8" />
       </span>
       <span className="mini-track-text" title={line}>
-        {lines.length ? line : "Lirik tidak tersedia"}
+        {lines.length ? line : "Lyrics unavailable"}
       </span>
     </div>
   );
@@ -124,15 +124,15 @@ export function LyricsPanel() {
     invoke("media_seek", { positionMs: ms }).catch(() => {});
 
   if (!media?.has_session) {
-    return <div className="lyrics-empty-state">Putar musik untuk melihat lirik…</div>;
+    return <div className="lyrics-empty-state">Play music to view lyrics…</div>;
   }
   if (loading) {
-    return <div className="lyrics-empty-state">Mencari lirik di LRCLIB…</div>;
+    return <div className="lyrics-empty-state">Fetching lyrics from LRCLIB…</div>;
   }
   if (!lines.length) {
     return (
       <div className="lyrics-empty-state">
-        <p>Lirik tidak ditemukan di LRCLIB</p>
+        <p>Lyrics not found on LRCLIB</p>
         <span className="lyrics-sub">{media.title}</span>
       </div>
     );
@@ -146,14 +146,14 @@ export function LyricsPanel() {
         <button
           className="sync-btn"
           onClick={() => changeOffset(-500)}
-          title="Lirik terlalu cepat? Mundurkan -0.5s"
+          title="Lyrics too fast? Delay -0.5s"
         >
           -0.5s
         </button>
         <span
           className={`sync-offset-val ${offsetMs !== 0 ? "has-offset" : ""}`}
           onClick={() => changeOffset(0)}
-          title="Klik untuk reset offset ke 0s"
+          title="Click to reset offset to 0s"
         >
           {offsetMs === 0
             ? "0s"
@@ -162,7 +162,7 @@ export function LyricsPanel() {
         <button
           className="sync-btn"
           onClick={() => changeOffset(500)}
-          title="Lirik terlalu lambat? Majukan +0.5s"
+          title="Lyrics too slow? Advance +0.5s"
         >
           +0.5s
         </button>
@@ -177,7 +177,7 @@ export function LyricsPanel() {
               i < activeIdx ? "past" : ""
             }`}
             onClick={() => jump(l.ms)}
-            title="Klik untuk loncat ke bagian lagu ini"
+            title="Click to seek to this lyric line"
           >
             {l.text}
           </div>

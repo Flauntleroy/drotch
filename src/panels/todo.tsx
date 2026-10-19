@@ -34,7 +34,7 @@ export function TodoMini() {
         <IconCheck size={12} color="#22c55e" />
       </span>
       <span className="mini-track-text">
-        {tasks.length ? `${done}/${tasks.length} tugas selesai` : "Belum ada tugas"}
+        {tasks.length ? `${done}/${tasks.length} tasks completed` : "No tasks"}
       </span>
     </div>
   );
@@ -56,16 +56,16 @@ export function TodoPanel() {
     <div className="todo-widget-card">
       <div className="todo-header-bar">
         <span className="todo-stat-badge">
-          {doneCount}/{tasks.length} Selesai
+          {doneCount}/{tasks.length} Done
         </span>
         <div className="todo-input-wrap">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Tambah tugas baru… (Enter)"
+            placeholder="Add new task… (Enter)"
           />
-          <button className="todo-add-btn" onClick={submit} title="Tambah tugas">
+          <button className="todo-add-btn" onClick={submit} title="Add task">
             <IconPlus size={13} color="#ffffff" />
           </button>
         </div>
@@ -75,7 +75,7 @@ export function TodoPanel() {
         {tasks.length === 0 ? (
           <div className="todo-empty-state">
             <IconCoffee size={13} color="#64748b" style={{ display: "inline-block", verticalAlign: "middle", marginRight: "5px" }} />
-            Semua tugas selesai. Santai dulu!
+            All tasks completed. Time to relax!
           </div>
         ) : (
           tasks.map((t) => (
@@ -83,7 +83,7 @@ export function TodoPanel() {
               <button
                 className={`todo-checkbox-custom ${t.done ? "checked" : ""}`}
                 onClick={() => toggle(t.id)}
-                title={t.done ? "Tandai belum selesai" : "Tandai selesai"}
+                title={t.done ? "Mark uncompleted" : "Mark completed"}
               >
                 {t.done && <IconCheck size={10} color="#ffffff" />}
               </button>
@@ -93,7 +93,7 @@ export function TodoPanel() {
               <button
                 className="todo-delete-btn"
                 onClick={() => remove(t.id)}
-                title="Hapus tugas"
+                title="Delete task"
               >
                 <IconTrash size={12} />
               </button>

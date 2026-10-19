@@ -48,7 +48,7 @@ export function ShelfMini() {
         <IconFolder size={14} color="#38bdf8" />
       </span>
       <span className="mini-track-text">
-        {items.length ? `${items.length} file di shelf` : "Drag file ke drotch"}
+        {items.length ? `${items.length} files in shelf` : "Drag files to Drotch"}
       </span>
     </div>
   );
@@ -64,8 +64,8 @@ export function ShelfPanel() {
           <div className="drop-icon">
             <IconFolder size={26} color="#38bdf8" />
           </div>
-          <div className="drop-title">Tarik & Lepas File ke Drotch</div>
-          <div className="drop-subtitle">File akan tersimpan cepat di sini untuk akses instan</div>
+          <div className="drop-title">Drag & Drop Files into Drotch</div>
+          <div className="drop-subtitle">Files will be kept here for quick instant access</div>
         </div>
       ) : (
         <div className="shelf-items-grid">
@@ -80,7 +80,7 @@ export function ShelfPanel() {
               <button
                 className="shelf-remove-btn"
                 onClick={() => remove(it.path)}
-                title="Hapus dari shelf"
+                title="Remove from shelf"
               >
                 <IconTrash size={10} color="#f87171" />
               </button>

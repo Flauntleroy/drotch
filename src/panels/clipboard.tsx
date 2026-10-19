@@ -23,10 +23,10 @@ export interface ClipboardItem {
 
 function formatRelativeTime(ts: number): string {
   const diffSec = Math.floor((Date.now() - ts) / 1000);
-  if (diffSec < 45) return "Baru saja";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m lalu`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}j lalu`;
-  return `${Math.floor(diffSec / 86400)}h lalu`;
+  if (diffSec < 45) return "Just now";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  return `${Math.floor(diffSec / 86400)}d ago`;
 }
 
 export function useClipboard() {
@@ -85,7 +85,7 @@ export function ClipboardMini() {
         <IconClipboard size={14} color="#38bdf8" />
       </span>
       <span className="mini-track-text">
-        {latest ? latest.preview.slice(0, 32) : "Clipboard kosong"}
+        {latest ? latest.preview.slice(0, 32) : "Clipboard empty"}
       </span>
     </div>
   );
@@ -123,7 +123,7 @@ export function ClipboardPanel() {
       <div className="clipboard-header-bar">
         <div className="clipboard-stats-wrap">
           <span className="clipboard-badge-count">
-            {items.length} Klip
+            {items.length} clips
           </span>
 
           {/* Filter Pills */}
@@ -132,31 +132,31 @@ export function ClipboardPanel() {
               className={`clip-pill ${activeFilter === "all" ? "active" : ""}`}
               onClick={() => setActiveFilter("all")}
             >
-              Semua
+              All
             </button>
             <button
               className={`clip-pill ${activeFilter === "text" ? "active" : ""}`}
               onClick={() => setActiveFilter("text")}
             >
-              Teks
+              Text
             </button>
             <button
               className={`clip-pill ${activeFilter === "url" ? "active" : ""}`}
               onClick={() => setActiveFilter("url")}
             >
-              Link
+              Links
             </button>
             <button
               className={`clip-pill ${activeFilter === "code" ? "active" : ""}`}
               onClick={() => setActiveFilter("code")}
             >
-              Kode
+              Code
             </button>
             <button
               className={`clip-pill ${activeFilter === "color" ? "active" : ""}`}
               onClick={() => setActiveFilter("color")}
             >
-              Warna
+              Colors
             </button>
           </div>
         </div>
@@ -167,7 +167,7 @@ export function ClipboardPanel() {
             <IconSearch size={11} color="#64748b" />
             <input
               type="text"
-              placeholder="Cari klip…"
+              placeholder="Search clips…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -177,7 +177,7 @@ export function ClipboardPanel() {
             <button
               className="clipboard-clear-btn"
               onClick={clearAll}
-              title="Bersihkan riwayat (kecuali yang di-pin)"
+              title="Clear history (keeps pinned)"
             >
               <IconTrash size={12} />
             </button>
@@ -190,11 +190,11 @@ export function ClipboardPanel() {
         {filteredItems.length === 0 ? (
           <div className="clipboard-empty-state">
             {search
-              ? "Tidak ada klip yang cocok dengan pencarian."
+              ? "No clips matching search."
               : (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                   <IconClipboard size={13} color="#64748b" />
-                  <span>Belum ada riwayat clipboard. Salin teks apa saja di PC Anda.</span>
+                  <span>No clipboard history yet. Copy any text on your PC.</span>
                 </div>
               )}
           </div>
@@ -209,7 +209,7 @@ export function ClipboardPanel() {
                   isJustCopied ? "is-copied" : ""
                 }`}
                 onClick={() => handleCopy(item)}
-                title="Klik untuk menyalin kembali ke clipboard"
+                title="Click to copy back to clipboard"
               >
                 {/* Kind indicator */}
                 <div className="clip-kind-indicator">
@@ -236,13 +236,13 @@ export function ClipboardPanel() {
                     </span>
                     <span className="clip-meta-dot">•</span>
                     <span className="clip-meta-chars">
-                      {item.char_count} kar
+                      {item.char_count} chars
                     </span>
                     {item.line_count > 1 && (
                       <>
                         <span className="clip-meta-dot">•</span>
                         <span className="clip-meta-chars">
-                          {item.line_count} baris
+                          {item.line_count} lines
                         </span>
                       </>
                     )}
@@ -254,7 +254,7 @@ export function ClipboardPanel() {
                   {isJustCopied ? (
                     <div className="clip-copied-badge">
                       <IconCheck size={11} color="#22c55e" />
-                      <span>Tersalin!</span>
+                      <span>Copied!</span>
                     </div>
                   ) : (
                     <div className="clip-hover-buttons">
@@ -264,7 +264,7 @@ export function ClipboardPanel() {
                           e.stopPropagation();
                           togglePin(item.id);
                         }}
-                        title={item.pinned ? "Lepas pin" : "Pin ke atas"}
+                        title={item.pinned ? "Unpin" : "Pin to top"}
                       >
                         <IconPin size={11} color={item.pinned ? "#38bdf8" : "currentColor"} />
                       </button>
@@ -275,7 +275,7 @@ export function ClipboardPanel() {
                           e.stopPropagation();
                           handleCopy(item);
                         }}
-                        title="Salin ke clipboard"
+                        title="Copy to clipboard"
                       >
                         <IconCopy size={11} />
                       </button>
@@ -286,7 +286,7 @@ export function ClipboardPanel() {
                           e.stopPropagation();
                           remove(item.id);
                         }}
-                        title="Hapus klip ini"
+                        title="Delete this clip"
                       >
                         <IconTrash size={11} />
                       </button>

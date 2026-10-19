@@ -424,8 +424,8 @@ export function NotchEyes({
       onClick={handleEyeClick}
       title={
         isWaterReminder
-          ? "Waktunya minum air! Klik droplet/+250ml untuk catat"
-          : "Klik mata untuk interaksi! Double klik untuk buka drotch"
+          ? "Time to hydrate! Click droplet to record +250ml"
+          : "Click eyes to interact! Double click to open Drotch"
       }
       onDoubleClick={onExpand}
     >
@@ -437,13 +437,13 @@ export function NotchEyes({
           }`}
           onClick={handleDrinkFromReminder}
           onDoubleClick={onOpenWater}
-          title="💧 Waktunya minum air! Klik droplet untuk minum (+250ml)"
+          title="Hydration time! Click droplet to drink (+250ml)"
         >
           {/* Prominent, Plump Water Droplet Mascot Actor (Enlarged & Overflowing past Notch) */}
           <div
             className={`water-droplet-actor extra-large overflowing ${isCelebrating ? "is-celebrating" : ""}`}
             onClick={handleDrinkFromReminder}
-            title="Klik droplet untuk minum (+250ml)!"
+            title="Click droplet to drink (+250ml)!"
           >
             {/* Clean, Simple 3D Liquid Puddle Locked Directly to Droplet Base */}
             <div className={`water-droplet-puddle-base ${isCelebrating ? "is-celebrating" : ""}`}>
@@ -621,10 +621,10 @@ export function NotchEyes({
       {isHovered && !isWaterReminder && (
         <div className="eyes-mini-reaction-hint">
           {isTyping
-            ? `⚡ Ngetik: ${typingSpeed.toFixed(1)}/detik`
+            ? `Typing: ${typingSpeed.toFixed(1)}/sec`
             : isPlaying
             ? "Jammin'!"
-            : "Klik aku!"}
+            : "Click me!"}
         </div>
       )}
     </div>

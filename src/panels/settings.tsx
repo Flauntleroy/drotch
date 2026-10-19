@@ -7,6 +7,7 @@ import {
   IconPower,
   IconPin,
   IconCheck,
+  IconBolt,
 } from "../components/Icons";
 
 export interface AppSettings {
@@ -104,7 +105,7 @@ export function SettingsPanel() {
   };
 
   if (loading) {
-    return <div className="widget-empty">Memuat pengaturan…</div>;
+    return <div className="widget-empty">Loading settings…</div>;
   }
 
   return (
@@ -113,11 +114,11 @@ export function SettingsPanel() {
       <div className="settings-header-row">
         <div className="settings-title-wrap">
           <IconSettings size={15} color="#38bdf8" />
-          <span className="settings-heading">Preferensi & Sistem</span>
+          <span className="settings-heading">Preferences & System</span>
         </div>
         {savedBadge && (
           <span className="settings-saved-chip">
-            <IconCheck size={11} color="#34d399" /> Tersimpan
+            <IconCheck size={11} color="#34d399" /> Saved
           </span>
         )}
       </div>
@@ -129,9 +130,9 @@ export function SettingsPanel() {
             <IconKeyboard size={15} color="#38bdf8" />
           </div>
           <div className="setting-meta-col">
-            <div className="setting-row-label">Tombol Pintas Buka/Tutup</div>
+            <div className="setting-row-label">Toggle Shortcut</div>
             <div className="setting-row-sub">
-              Buka atau ciutkan Drotch dari aplikasi apa pun
+              Expand or collapse Drotch from any application
             </div>
           </div>
           <div className="setting-ctrl-col">
@@ -155,9 +156,9 @@ export function SettingsPanel() {
             <IconPower size={15} color="#818cf8" />
           </div>
           <div className="setting-meta-col">
-            <div className="setting-row-label">Mulai Saat Windows Menyala</div>
+            <div className="setting-row-label">Launch on Windows Startup</div>
             <div className="setting-row-sub">
-              Otomatis jalankan Drotch di background saat login
+              Automatically run Drotch in background on login
             </div>
           </div>
           <div className="setting-ctrl-col">
@@ -178,9 +179,9 @@ export function SettingsPanel() {
             <IconPin size={14} color="#a855f7" />
           </div>
           <div className="setting-meta-col">
-            <div className="setting-row-label">Selalu di Depan (Always on Top)</div>
+            <div className="setting-row-label">Always on Top</div>
             <div className="setting-row-sub">
-              Drotch tetap terlihat di atas window / browser lain
+              Keep Drotch floating above other active windows
             </div>
           </div>
           <div className="setting-ctrl-col">
@@ -198,12 +199,12 @@ export function SettingsPanel() {
         {/* Item 4: Efek Ketikan (Typing Reactions) */}
         <div className="setting-card-item">
           <div className="setting-icon-col">
-            <span className="setting-emoji-icon">⚡</span>
+            <IconBolt size={14} color="#eab308" />
           </div>
           <div className="setting-meta-col">
-            <div className="setting-row-label">Efek Saat Mengetik</div>
+            <div className="setting-row-label">Typing Reactions</div>
             <div className="setting-row-sub">
-              Mata fokus ke keyboard & neon pulse saat kamu mengetik
+              Eyes focus down and neon pulse glows as you type
             </div>
           </div>
           <div className="setting-ctrl-col">
@@ -221,7 +222,7 @@ export function SettingsPanel() {
         {/* Item 5: Lokasi Cuaca */}
         <div className="setting-card-item is-column">
           <div className="setting-row-label-row">
-            <span className="setting-row-label">Kota Cuaca Aktif</span>
+            <span className="setting-row-label">Active Weather City</span>
             <span className="setting-active-city-badge">{settings.city}</span>
           </div>
           <div className="setting-city-chips">

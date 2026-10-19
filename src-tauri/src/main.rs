@@ -8,6 +8,7 @@ mod power;
 mod settings;
 mod shelf;
 mod store;
+mod telemetry;
 mod todo;
 mod typing;
 mod visualizer;
@@ -153,6 +154,12 @@ fn power_get() -> Result<Option<power::PowerInfo>, String> {
     Ok(power::get_power_info())
 }
 
+// ---- System Telemetry ----
+#[tauri::command]
+fn telemetry_get() -> Result<telemetry::TelemetryInfo, String> {
+    Ok(telemetry::get_system_telemetry())
+}
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -183,6 +190,9 @@ fn main() {
 
             // Start battery / power status monitor
             power::start_power_listener(app.handle().clone());
+
+            // Start system telemetry monitor (CPU, RAM, Uptime)
+            telemetry::start_telemetry_listener(app.handle().clone());
 
             // Load saved settings & activate global shortcut
             if let Ok(s) = settings::get_settings(&app.handle()) {
@@ -217,6 +227,7 @@ fn main() {
             clipboard_clear,
             clipboard_toggle_pin,
             power_get,
+            telemetry_get,
         ])
         .run(tauri::generate_context!())
         .expect("gagal menjalankan Drotch");

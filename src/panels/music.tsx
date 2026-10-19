@@ -235,7 +235,7 @@ export function MusicPanel({
             <button
               className={`control-btn lyrics-btn ${isLyricsOpen ? "active" : ""}`}
               onClick={onToggleLyrics}
-              title="Toggle Lirik (Split View)"
+              title="Toggle Lyrics (Split View)"
             >
               <IconLyrics size={14} />
             </button>

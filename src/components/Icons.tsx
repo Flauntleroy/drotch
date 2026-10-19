@@ -419,5 +419,107 @@ export function IconClipboardCheck({ size = 13, className = "", color = "current
   );
 }
 
+export function IconTimer({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+export function IconTarget({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
+export function IconCpu({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" />
+      <line x1="9" y1="1" x2="9" y2="4" />
+      <line x1="15" y1="1" x2="15" y2="4" />
+      <line x1="9" y1="20" x2="9" y2="23" />
+      <line x1="15" y1="20" x2="15" y2="23" />
+      <line x1="20" y1="9" x2="23" y2="9" />
+      <line x1="20" y1="14" x2="23" y2="14" />
+      <line x1="1" y1="9" x2="4" y2="9" />
+      <line x1="1" y1="14" x2="4" y2="14" />
+    </svg>
+  );
+}
+
+export function IconRam({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <path d="M6 19v2" />
+      <path d="M10 19v2" />
+      <path d="M14 19v2" />
+      <path d="M18 19v2" />
+      <rect x="3" y="5" width="18" height="12" rx="2" />
+      <path d="M7 9h2" />
+      <path d="M7 13h2" />
+      <path d="M11 9h2" />
+      <path d="M11 13h2" />
+      <path d="M15 9h2" />
+      <path d="M15 13h2" />
+    </svg>
+  );
+}
+
+export function IconActivity({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  );
+}
+
+export function IconCalculator({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="16" y1="14" x2="16" y2="18" />
+      <path d="M16 10h.01" />
+      <path d="M12 10h.01" />
+      <path d="M8 10h.01" />
+      <path d="M12 14h.01" />
+      <path d="M8 14h.01" />
+      <path d="M12 18h.01" />
+      <path d="M8 18h.01" />
+    </svg>
+  );
+}
+
+export function IconEqual({ size = 13, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <line x1="5" y1="9" x2="19" y2="9" />
+      <line x1="5" y1="15" x2="19" y2="15" />
+    </svg>
+  );
+}
+
+export function IconSparkles({ size = 14, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+      <path d="M5 3v4" />
+      <path d="M19 17v4" />
+      <path d="M3 5h4" />
+      <path d="M17 19h4" />
+    </svg>
+  );
+}
+
+
+
 
 

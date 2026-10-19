@@ -94,15 +94,15 @@ export function WaterWidget() {
             <button
               className="water-interval-badge"
               onClick={cycleInterval}
-              title={`Interval Pengingat Minum: Setiap ${intervalMins} menit (Klik untuk ubah 20m/30m/45m/60m)`}
+              title={`Water Reminder Interval: Every ${intervalMins} mins (Click to cycle 20m/30m/45m/60m)`}
             >
               <span>{intervalMins}m</span>
             </button>
             <button
               className={`water-toggle-switch ${notifications ? "on" : "off"}`}
               onClick={() => setNotifications(!notifications)}
-              title={notifications ? "Pengingat Minum: Aktif" : "Pengingat Minum: Nonaktif"}
-              aria-label="Toggle Pengingat Minum"
+              title={notifications ? "Water Reminder: On" : "Water Reminder: Off"}
+              aria-label="Toggle Water Reminder"
             >
               <span className="water-toggle-thumb">
                 <IconBell size={9} color={notifications ? "#0284c7" : "#64748b"} />
@@ -114,7 +114,7 @@ export function WaterWidget() {
         <div className="water-substat">
           <span>Today · </span>
           <strong style={{ color: "#38bdf8" }}>{pct}%</strong>
-          <span> · {pct >= 100 ? "Goal reached 🎉" : "Stay hydrated!"}</span>
+          <span> · {pct >= 100 ? "Goal reached!" : "Stay hydrated!"}</span>
         </div>
 
         <div className="water-progress-track">
@@ -129,7 +129,7 @@ export function WaterWidget() {
             <IconWaterDrop size={13} color="#ffffff" />
             <span>Drink (+250ml)</span>
           </button>
-          <button className="water-btn secondary" onClick={resetDrink} title="Reset progres hari ini">
+          <button className="water-btn secondary" onClick={resetDrink} title="Reset today's progress">
             <IconRefresh size={12} />
             <span>Reset</span>
           </button>

@@ -61,7 +61,7 @@ export function WeatherMini() {
         {w ? <WeatherIcon code={w.code} size={15} /> : <IconThermometer size={15} />}
       </span>
       <span className="mini-track-text">
-        {w ? `${Math.round(w.temp_c)}°C · ${w.condition} · ${w.city}` : "Memuat cuaca…"}
+        {w ? `${Math.round(w.temp_c)}°C · ${w.condition} · ${w.city}` : "Loading weather…"}
       </span>
     </div>
   );
@@ -77,8 +77,8 @@ export function WeatherPanel() {
     setTimeout(() => setIsRotating(false), 800);
   };
 
-  if (loading && !w) return <div className="widget-empty">Memuat perkiraan cuaca…</div>;
-  if (!w) return <div className="widget-empty">Gagal memuat cuaca</div>;
+  if (loading && !w) return <div className="widget-empty">Loading weather forecast…</div>;
+  if (!w) return <div className="widget-empty">Failed to load weather</div>;
 
   return (
     <div className="weather-widget-card">
@@ -96,17 +96,17 @@ export function WeatherPanel() {
       </div>
       <div className="weather-meta-info">
         <div className="weather-chip">
-          <span className="chip-label">Angin</span>
+          <span className="chip-label">Wind</span>
           <span className="chip-val">12 km/h</span>
         </div>
         <div className="weather-chip">
-          <span className="chip-label">Kelembapan</span>
+          <span className="chip-label">Humidity</span>
           <span className="chip-val">78%</span>
         </div>
         <button
           className={`weather-refresh-btn ${isRotating ? "is-spinning" : ""}`}
           onClick={handleRefresh}
-          title="Perbarui cuaca"
+          title="Refresh weather"
         >
           <IconRefresh size={13} />
         </button>
