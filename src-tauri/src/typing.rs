@@ -1,9 +1,9 @@
 use serde::Serialize;
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU64, Ordering};
 use std::sync::{OnceLock, RwLock};
 use std::time::{Duration, Instant};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
 type HHOOK = *mut std::ffi::c_void;
 type LRESULT = isize;
@@ -36,16 +36,38 @@ extern "system" {
     fn UnhookWindowsHookEx(hhk: HHOOK) -> i32;
     fn GetMessageW(lpMsg: *mut std::ffi::c_void, hWnd: *mut std::ffi::c_void, wMsgFilterMin: u32, wMsgFilterMax: u32) -> i32;
     fn GetAsyncKeyState(vKey: i32) -> i16;
+    fn GetForegroundWindow() -> *mut std::ffi::c_void;
+    fn GetShellWindow() -> *mut std::ffi::c_void;
+    fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
 }
 
 static mut HOOK_HANDLE: HHOOK = std::ptr::null_mut();
 static KEY_COUNT: AtomicU64 = AtomicU64::new(0);
 static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 static ACTIVE_SHORTCUT: RwLock<String> = RwLock::new(String::new());
+static IS_EXPANDED: AtomicBool = AtomicBool::new(false);
+static PREV_FOREGROUND: AtomicPtr<std::ffi::c_void> = AtomicPtr::new(std::ptr::null_mut());
 
 pub fn set_active_shortcut(shortcut: &str) {
     if let Ok(mut lock) = ACTIVE_SHORTCUT.write() {
         *lock = shortcut.to_string();
+    }
+}
+
+pub fn set_island_expanded(expanded: bool) {
+    let was_expanded = IS_EXPANDED.swap(expanded, Ordering::SeqCst);
+    if was_expanded && !expanded {
+        let prev = PREV_FOREGROUND.swap(std::ptr::null_mut(), Ordering::SeqCst);
+        let target = if !prev.is_null() {
+            prev
+        } else {
+            unsafe { GetShellWindow() }
+        };
+        if !target.is_null() {
+            unsafe {
+                SetForegroundWindow(target);
+            }
+        }
     }
 }
 
@@ -66,20 +88,21 @@ unsafe extern "system" fn hook_callback(n_code: i32, w_param: WPARAM, l_param: L
         let shortcut = ACTIVE_SHORTCUT.read().map(|s| s.clone()).unwrap_or_else(|_| "Ctrl+Shift+Space".to_string());
         let current_shortcut = if shortcut.is_empty() { "Ctrl+Shift+Space" } else { shortcut.as_str() };
 
+        // Modifier states (general, left, right)
+        let ctrl = ((GetAsyncKeyState(0x11) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA2) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA3) as u16 & 0x8000) != 0);
+
+        let shift = ((GetAsyncKeyState(0x10) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA0) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA1) as u16 & 0x8000) != 0);
+
+        let alt = ((GetAsyncKeyState(0x12) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA4) as u16 & 0x8000) != 0)
+            || ((GetAsyncKeyState(0xA5) as u16 & 0x8000) != 0);
+
+        // 2. Global Drotch Toggle Shortcut (e.g. Ctrl+Shift+Space)
         if current_shortcut != "None" {
-            // Check modifier keys robustly across virtual codes (general, left, right)
-            let ctrl = ((GetAsyncKeyState(0x11) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA2) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA3) as u16 & 0x8000) != 0);
-
-            let shift = ((GetAsyncKeyState(0x10) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA0) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA1) as u16 & 0x8000) != 0);
-
-            let alt = ((GetAsyncKeyState(0x12) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA4) as u16 & 0x8000) != 0)
-                || ((GetAsyncKeyState(0xA5) as u16 & 0x8000) != 0);
-
             let matches = match current_shortcut {
                 "Ctrl+Shift+Space" => ctrl && shift && !alt && vk == VK_SPACE,
                 "Alt+Space" => alt && !ctrl && !shift && vk == VK_SPACE,
@@ -90,8 +113,36 @@ unsafe extern "system" fn hook_callback(n_code: i32, w_param: WPARAM, l_param: L
 
             if matches {
                 println!("[Drotch] Global shortcut triggered: {}", current_shortcut);
+                let will_expand = !IS_EXPANDED.load(Ordering::SeqCst);
+                IS_EXPANDED.store(will_expand, Ordering::SeqCst);
+
                 if let Some(app) = APP_HANDLE.get() {
-                    let _ = app.emit("toggle-drotch", ());
+                    let win = app.get_webview_window("drotch")
+                        .or_else(|| app.get_webview_window("main"))
+                        .or_else(|| app.webview_windows().into_values().next());
+
+                    if will_expand {
+                        let prev = unsafe { GetForegroundWindow() };
+                        PREV_FOREGROUND.store(prev, Ordering::SeqCst);
+                        if let Some(w) = win {
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    } else {
+                        let prev = PREV_FOREGROUND.swap(std::ptr::null_mut(), Ordering::SeqCst);
+                        let target = if !prev.is_null() {
+                            prev
+                        } else {
+                            unsafe { GetShellWindow() }
+                        };
+                        if !target.is_null() {
+                            unsafe {
+                                SetForegroundWindow(target);
+                            }
+                        }
+                    }
+
+                    let _ = app.emit("toggle-drotch", will_expand);
                 }
                 // Swallowing key event so no unwanted character is typed
                 return 1;

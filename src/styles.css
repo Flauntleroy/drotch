@@ -19,7 +19,38 @@ body,
   user-select: none;
   -webkit-user-select: none;
   color: #ffffff;
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- Global Glassmorphism Scrollbar ---------------- */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* ---------------- Root Stage ---------------- */
@@ -1317,8 +1348,44 @@ body,
   color: #64748b;
 }
 
-.water-toggle-switch {
+.water-stat-badges {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+}
+
+.water-interval-badge {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  height: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.water-interval-badge:hover {
+  background: rgba(56, 189, 248, 0.24);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+  transform: translateY(-0.5px);
+}
+
+.water-interval-badge:active {
+  transform: scale(0.95);
+}
+
+.water-toggle-switch {
   background: #0284c7;
   border: 1px solid rgba(255, 255, 255, 0.15);
   width: 36px;
@@ -2099,4 +2166,725 @@ body,
   font-weight: 700;
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
 }
+
+/* ==========================================================================
+   IDLE MODE DRINK REMINDER ANIMATION & HYDRATION ACTOR
+   ========================================================================== */
+
+/* Island Fluid Morphing when Drink Reminder is Active in Idle Mode */
+.notch-island-wrapper.is-water-reminder:not(.is-expanded) {
+  width: 180px;
+  overflow: visible !important;
+  transform: none !important;
+  -webkit-backface-visibility: visible !important;
+  backface-visibility: visible !important;
+}
+
+.notch-island.is-water-reminder:not(.is-expanded) {
+  overflow: visible !important;
+  transform: none !important;
+  -webkit-backface-visibility: visible !important;
+  backface-visibility: visible !important;
+  border-bottom-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 22px -2px rgba(56, 189, 248, 0.45), 0 8px 24px -6px rgba(0, 0, 0, 0.95);
+}
+
+.notch-island.is-water-reminder:not(.is-expanded) .notch-content-container {
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.notch-island.is-water-reminder:not(.is-expanded) .notch-collapsed-layer {
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.notch-ambient-bloom.is-water-reminder {
+  display: none !important;
+}
+
+.notch-ambient-bloom.is-water-reminder:not(.is-expanded)::before {
+  opacity: 1;
+  filter: blur(12px);
+  background: radial-gradient(ellipse at 50% 50%, rgba(56, 189, 248, 0.9), rgba(6, 182, 212, 0.7), transparent 72%);
+  animation: waterBloomPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes waterBloomPulse {
+  0% {
+    opacity: 0.75;
+    filter: blur(8px);
+    transform: scaleX(0.95);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(14px);
+    transform: scaleX(1.05);
+  }
+}
+
+.interactive-eyes-wrapper.is-water-active {
+  cursor: pointer;
+  overflow: visible !important;
+}
+
+.water-idle-reminder-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  animation: waterReminderEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+  overflow: visible !important;
+}
+
+@keyframes waterReminderEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Hide camera dot during water reminder so droplet is completely unobstructed */
+.notch-island.is-water-reminder .notch-camera-dot {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* ==========================================================================
+   CLEAN 3D WATER PUDDLE (LOCKED DIRECTLY TO DROPLET BASE & OVERFLOWING NOTCH)
+   ========================================================================== */
+
+.water-droplet-puddle-base {
+  position: absolute;
+  bottom: -4px; /* Perfectly hugs the bottom curve of the droplet */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 18px;
+  pointer-events: none;
+  z-index: -1; /* Placed immediately behind droplet surface so droplet sits IN it */
+  transform-origin: 50% 50%;
+}
+
+.puddle-liquid-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, rgba(56, 189, 248, 0.88) 0%, rgba(2, 132, 199, 0.75) 60%, rgba(3, 105, 161, 0.45) 85%, transparent 100%);
+  border: 1.4px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 
+    0 4px 14px rgba(2, 132, 199, 0.75), 
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 1px 4px rgba(255, 255, 255, 0.7);
+  animation: puddleBreathe 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes puddleBreathe {
+  0% {
+    transform: scale(1, 1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.05, 1.08);
+    opacity: 1;
+  }
+}
+
+.water-droplet-puddle-base.is-celebrating .puddle-liquid-disc {
+  animation: puddleSplashBounce 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes puddleSplashBounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22, 0.85); }
+  65% { transform: scale(0.94, 1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Concentric Liquid Ripple Rings Expanding on the Puddle Surface */
+.water-droplet-puddle-base .puddle-ripple-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.35);
+  width: 48px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.6px solid rgba(56, 189, 248, 0.9);
+  pointer-events: none;
+  opacity: 0;
+  animation: puddleRippleExpand 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.water-droplet-puddle-base .puddle-ripple-ring.r1 {
+  animation-delay: 0s;
+}
+
+.water-droplet-puddle-base .puddle-ripple-ring.r2 {
+  animation-delay: 1.2s;
+}
+
+@keyframes puddleRippleExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.95;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   ENLARGED PROMINENT LIVING KAWAII WATER DROPLET ACTOR (OVERFLOWING PAST NOTCH)
+   ========================================================================== */
+
+.water-droplet-actor.extra-large.overflowing {
+  position: relative;
+  width: 44px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transform-origin: 50% 85%;
+  transform: translateY(4px); /* Gently bulges 10px down past notch bottom into transparent space */
+  z-index: 12;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.water-droplet-actor.extra-large.overflowing:hover {
+  transform: translateY(4px) scale(1.12);
+}
+
+.water-droplet-actor.extra-large.overflowing:active {
+  transform: translateY(5px) scale(0.94);
+}
+
+/* The Teardrop SVG with Squishy Liquid Jelly Physics (42px x 48px) */
+.water-droplet-actor.extra-large.overflowing .water-drop-svg {
+  width: 42px;
+  height: 48px;
+  animation: liquidJellyWobble 2.6s ease-in-out infinite;
+  transform-origin: 50% 85%;
+  filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.95)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+  display: block;
+}
+
+@keyframes liquidJellyWobble {
+  0%, 100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+  }
+  18% {
+    transform: translateY(-3px) scale(0.92, 1.1) rotate(-3deg);
+  }
+  36% {
+    transform: translateY(1.8px) scale(1.12, 0.9) rotate(2deg);
+  }
+  54% {
+    transform: translateY(-1.8px) scale(0.95, 1.06) rotate(-1.5deg);
+  }
+  72% {
+    transform: translateY(0.8px) scale(1.05, 0.96) rotate(1deg);
+  }
+  86% {
+    transform: translateY(-0.3px) scale(0.98, 1.02) rotate(0deg);
+  }
+}
+
+/* Celebration Jump & Spin on Click */
+.water-drop-svg.is-celebrating {
+  animation: dropCelebrateHop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+@keyframes dropCelebrateHop {
+  0% {
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.3) translateY(-9px) rotate(-10deg);
+  }
+  65% {
+    transform: scale(1.22) translateY(-4px) rotate(8deg);
+  }
+  100% {
+    transform: scale(1.1) translateY(0) rotate(0deg);
+  }
+}
+
+.water-droplet-glow {
+  position: absolute;
+  inset: 0px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.35) 0%, transparent 75%);
+  filter: blur(5px);
+  pointer-events: none;
+  animation: dropGlowPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes dropGlowPulse {
+  0% { opacity: 0.45; transform: scale(0.85); }
+  100% { opacity: 0.95; transform: scale(1.25); }
+}
+
+
+/* Micro Bubbly Pearls */
+.water-micro-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, rgba(56, 189, 248, 0.75) 65%);
+  box-shadow: 0 0 4px rgba(56, 189, 248, 0.9);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.water-micro-bubble.b1 {
+  width: 4.5px;
+  height: 4.5px;
+  left: -2px;
+  bottom: 6px;
+  animation: bubbleRise1 2.2s ease-in infinite 0.1s;
+}
+
+.water-micro-bubble.b2 {
+  width: 3.5px;
+  height: 3.5px;
+  right: -3px;
+  bottom: 8px;
+  animation: bubbleRise2 2.6s ease-in infinite 0.9s;
+}
+
+.water-micro-bubble.b3 {
+  width: 3px;
+  height: 3px;
+  left: 6px;
+  top: 0px;
+  animation: bubbleRise3 2.0s ease-in infinite 1.5s;
+}
+
+@keyframes bubbleRise1 {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-3px, -18px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleRise2 {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(4px, -17px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleRise3 {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(2px, -14px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* 8-Point Radial Splash Burst Particles Upon Drinking */
+.water-splash-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.splash-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8, 0 0 3px #ffffff;
+}
+
+.splash-particle.p1 { animation: splash1 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p2 { animation: splash2 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p3 { animation: splash3 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p4 { animation: splash4 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p5 { animation: splash5 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p6 { animation: splash6 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p7 { animation: splash7 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.splash-particle.p8 { animation: splash8 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes splash1 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-16px, -14px) scale(0); opacity: 0; } }
+@keyframes splash2 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(16px, -14px) scale(0); opacity: 0; } }
+@keyframes splash3 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-18px, 6px) scale(0); opacity: 0; } }
+@keyframes splash4 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(18px, 6px) scale(0); opacity: 0; } }
+@keyframes splash5 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(0px, -18px) scale(0); opacity: 0; } }
+@keyframes splash6 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-9px, 14px) scale(0); opacity: 0; } }
+@keyframes splash7 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(9px, 14px) scale(0); opacity: 0; } }
+@keyframes splash8 { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(0px, 16px) scale(0); opacity: 0; } }
+
+/* Test Button in Water Panel */
+.water-btn.test-reminder-btn {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.water-btn.test-reminder-btn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+/* ---------------- Clipboard History Panel ---------------- */
+.clipboard-widget-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.clipboard-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.clipboard-stats-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.clipboard-badge-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.clipboard-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.clip-pill {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 5px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clip-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.clip-pill.active {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  font-weight: 600;
+}
+
+.clipboard-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clipboard-search-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0 6px;
+  height: 22px;
+  width: 90px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clipboard-search-input:focus-within {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  width: 120px;
+}
+
+.clipboard-search-input input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 10px;
+  width: 100%;
+}
+
+.clipboard-clear-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #64748b;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.clipboard-clear-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.clipboard-items-scroll {
+  max-height: 74px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.clipboard-items-scroll::-webkit-scrollbar {
+  width: 3.5px;
+}
+
+.clipboard-items-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clipboard-items-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+}
+
+.clipboard-items-scroll::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+.clipboard-items-scroll::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.clipboard-empty-state {
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+  padding: 18px 8px;
+}
+
+.clipboard-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 7px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.clipboard-item-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.clipboard-item-row.is-pinned {
+  border-left: 2.5px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.clipboard-item-row.is-copied {
+  background: rgba(34, 197, 94, 0.14) !important;
+  border-color: rgba(34, 197, 94, 0.45) !important;
+}
+
+.clip-kind-indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clip-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  display: inline-block;
+}
+
+.clip-type-tag {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1.5px 4px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.clip-type-tag.url {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.clip-type-tag.code {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  font-family: monospace;
+}
+
+.clip-type-tag.txt {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.clip-content-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.clip-preview-text {
+  font-size: 11px;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.clip-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: #64748b;
+}
+
+.clip-meta-dot {
+  opacity: 0.5;
+}
+
+.clip-actions-col {
+  flex-shrink: 0;
+  min-width: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.clip-copied-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.clip-hover-buttons {
+  display: none;
+  align-items: center;
+  gap: 3px;
+}
+
+.clipboard-item-row:hover .clip-hover-buttons {
+  display: flex;
+}
+
+.clip-btn-icon {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #94a3b8;
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.clip-btn-icon:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.clip-btn-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.clip-btn-icon.pin.active {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+}
+
 

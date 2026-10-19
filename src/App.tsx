@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow, primaryMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition, LogicalSize } from "@tauri-apps/api/dpi";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { useMedia } from "./panels/media";
 import { MusicPanel } from "./panels/music";
 import { LyricsPanel } from "./panels/lyrics";
@@ -10,6 +11,7 @@ import { WaterWidget } from "./panels/water";
 import { TodoPanel } from "./panels/todo";
 import { ShelfPanel } from "./panels/shelf";
 import { SettingsPanel } from "./panels/settings";
+import { ClipboardPanel } from "./panels/clipboard";
 import { NotchEyes } from "./components/NotchEyes";
 import {
   IconPin,
@@ -19,12 +21,13 @@ import {
 } from "./components/Icons";
 import "./styles.css";
 
-type PanelId = "music" | "weather" | "water" | "todo" | "shelf" | "settings";
+type PanelId = "music" | "weather" | "water" | "clipboard" | "todo" | "shelf" | "settings";
 
 const PANELS: { id: PanelId; title: string }[] = [
   { id: "music", title: "Music" },
   { id: "weather", title: "Weather" },
   { id: "water", title: "Water Reminder" },
+  { id: "clipboard", title: "Clipboard" },
   { id: "todo", title: "To-do List" },
   { id: "shelf", title: "Shelf" },
   { id: "settings", title: "Settings" },
@@ -33,6 +36,7 @@ const PANELS: { id: PanelId; title: string }[] = [
 // Fixed horizontal width so OS window X position NEVER shifts or jitters
 const FIXED_WIN_W = 720;
 const WIN_COLLAPSED_H = 50; // 32px notch + 18px smooth shadow diffusion buffer
+const WIN_WATER_REMINDER_H = 78; // 32px notch + 24px 3D overflowing puddle + 22px caustic shadow buffer
 const WIN_EXPANDED_NORMAL_H = 204; // 172px notch + 32px shadow diffusion buffer
 const WIN_EXPANDED_LYRICS_H = 214; // 182px notch + 32px shadow diffusion buffer
 
@@ -65,6 +69,17 @@ export default function App() {
     speed: 0,
     total: 0,
   });
+  const [isWaterReminder, setIsWaterReminder] = useState(false);
+  const isWaterReminderRef = useRef(false);
+  const expandedRef = useRef(expanded);
+
+  useEffect(() => {
+    expandedRef.current = expanded;
+  }, [expanded]);
+
+  useEffect(() => {
+    isWaterReminderRef.current = isWaterReminder;
+  }, [isWaterReminder]);
 
   useEffect(() => {
     localStorage.setItem("drotch_lyrics_open", String(lyricsOpen));
@@ -90,17 +105,26 @@ export default function App() {
     };
   }, []);
 
-  // Global Shortcut Listener (toggle open / collapse Drotch from anywhere in Windows)
-  useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    listen("toggle-drotch", async () => {
-      setExpanded((prev) => {
-        const next = !prev;
-        if (!next) {
-          setPinned(false);
-        }
-        return next;
-      });
+  const lastToggleTimeRef = useRef<number>(0);
+
+  const toggleIsland = async () => {
+    const now = Date.now();
+    if (now - lastToggleTimeRef.current < 250) return;
+    lastToggleTimeRef.current = now;
+
+    if (expandedRef.current) {
+      setPinned(false);
+      setExpanded(false);
+      setPanelIndex(0);
+      try {
+        window.blur();
+      } catch {
+        /* ignore */
+      }
+    } else {
+      setPanelIndex(0);
+      setExpanded(true);
+      setPinned(true);
       try {
         const win = getCurrentWindow();
         await win.show();
@@ -108,12 +132,38 @@ export default function App() {
       } catch {
         /* ignore */
       }
+      window.focus();
+    }
+  };
+
+  // Global Shortcut Listener (Ctrl+Shift+Space to toggle Drotch via OS hook)
+  useEffect(() => {
+    let unlistenToggle: (() => void) | null = null;
+
+    listen<boolean>("toggle-drotch", (event) => {
+      const willExpand =
+        typeof event.payload === "boolean" ? event.payload : !expandedRef.current;
+      if (willExpand) {
+        setPanelIndex(0);
+        setExpanded(true);
+        setPinned(true);
+        window.focus();
+      } else {
+        setPinned(false);
+        setExpanded(false);
+        setPanelIndex(0);
+        try {
+          window.blur();
+        } catch {
+          /* ignore */
+        }
+      }
     }).then((fn) => {
-      unlisten = fn;
+      unlistenToggle = fn;
     });
 
     return () => {
-      if (unlisten) unlisten();
+      if (unlistenToggle) unlistenToggle();
     };
   }, []);
 
@@ -207,11 +257,18 @@ export default function App() {
   const isCurrentLyricsSplit = panelIndex === 0 && lyricsOpen;
   const isIslandActive = expanded || pinned;
 
+  // Synchronize expansion state with Rust OS hook so focus is properly restored
+  useEffect(() => {
+    invoke("set_island_expanded", { expanded: isIslandActive }).catch(() => {});
+  }, [isIslandActive]);
+
   const targetWinH = isIslandActive
     ? isCurrentLyricsSplit
       ? WIN_EXPANDED_LYRICS_H
       : WIN_EXPANDED_NORMAL_H
-    : WIN_COLLAPSED_H;
+    : isWaterReminder
+      ? WIN_WATER_REMINDER_H
+      : WIN_COLLAPSED_H;
 
   // Fluid height coordination: zero horizontal repositioning
   useEffect(() => {
@@ -221,6 +278,12 @@ export default function App() {
         shrinkTimerRef.current = null;
       }
       updateWindowHeight(targetWinH);
+    } else if (isWaterReminder) {
+      if (shrinkTimerRef.current) {
+        clearTimeout(shrinkTimerRef.current);
+        shrinkTimerRef.current = null;
+      }
+      updateWindowHeight(WIN_WATER_REMINDER_H);
     } else {
       shrinkTimerRef.current = setTimeout(() => {
         updateWindowHeight(WIN_COLLAPSED_H);
@@ -230,9 +293,12 @@ export default function App() {
     return () => {
       if (shrinkTimerRef.current) clearTimeout(shrinkTimerRef.current);
     };
-  }, [isIslandActive, targetWinH]);
+  }, [isIslandActive, isWaterReminder, targetWinH]);
 
   const handleMouseEnter = () => {
+    // When water reminder droplet is active in idle mode, do not auto-expand so user can view & click the droplet!
+    if (isWaterReminder || isWaterReminderRef.current) return;
+
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
@@ -262,10 +328,61 @@ export default function App() {
     setPanelIndex((prev) => (prev === PANELS.length - 1 ? 0 : prev + 1));
   };
 
+  // Keyboard navigation for Carousel panels (A for Left, D for Right, Arrows, and Esc)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when user is typing inside text inputs / textareas / contenteditable
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
+      // Escape key closes Drotch
+      if (e.key === "Escape") {
+        if (isIslandActive) {
+          e.preventDefault();
+          setPinned(false);
+          setExpanded(false);
+          setPanelIndex(0);
+          try {
+            window.blur();
+          } catch {}
+        }
+        return;
+      }
+
+      // Don't intercept if modifier keys like Ctrl, Alt, or Meta are held down
+      if (e.ctrlKey || e.altKey || e.metaKey) {
+        return;
+      }
+
+      // Only handle panel navigation when island is active (expanded or pinned)
+      if (!isIslandActive) return;
+
+      const key = e.key.toLowerCase();
+      if (key === "a" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevPanel();
+      } else if (key === "d" || e.key === "ArrowRight") {
+        e.preventDefault();
+        nextPanel();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isIslandActive]);
+
   const handleSwipePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (
       (e.target as HTMLElement).closest(
-        "button, input, textarea, .seekbar-track, .lyrics-split-separator, .water-btn, .water-toggle-switch, .lyrics-lines-box, .todo-item-row, .shelf-action-btn"
+        "button, input, textarea, .seekbar-track, .lyrics-split-separator, .water-btn, .water-toggle-switch, .lyrics-lines-box, .todo-item-row, .shelf-action-btn, .clipboard-item-row, .clip-pill, .clipboard-clear-btn"
       )
     ) {
       return;
@@ -314,7 +431,7 @@ export default function App() {
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (
       (e.target as HTMLElement).closest(
-        ".lyrics-lines-box, .todo-items-list, .shelf-items-list"
+        ".lyrics-lines-box, .todo-items-list, .shelf-items-list, .clipboard-items-scroll"
       )
     ) {
       return;
@@ -341,7 +458,7 @@ export default function App() {
       <div
         className={`notch-island-wrapper ${isIslandActive ? "is-expanded" : ""} ${
           isCurrentLyricsSplit ? "is-lyrics-open" : ""
-        }`}
+        } ${isWaterReminder && !isIslandActive ? "is-water-reminder" : ""}`}
       >
         {/* Seamless 12px Top Screen Bezel Invert Fillets (Ears) on Wrapper */}
         <div className="notch-ear ear-left" />
@@ -353,40 +470,57 @@ export default function App() {
             media?.playing ? "is-playing" : ""
           } ${hasAudioFeed ? "has-audio-feed" : ""} ${
             typingState.is_typing ? "is-typing" : ""
-          }`}
+          } ${isWaterReminder && !isIslandActive ? "is-water-reminder" : ""}`}
         >
-          <div className="bloom-visualizer-track">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <span
-                key={i}
-                ref={(el) => {
-                  visualizerBarsRef.current[i] = el;
-                }}
-                className={`bv-bar b${i + 1}`}
-              />
-            ))}
-          </div>
+          {!isWaterReminder && (
+            <div className="bloom-visualizer-track">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <span
+                  key={i}
+                  ref={(el) => {
+                    visualizerBarsRef.current[i] = el;
+                  }}
+                  className={`bv-bar b${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div
           className={`notch-island ${isIslandActive ? "is-expanded" : ""} ${
             isCurrentLyricsSplit ? "is-lyrics-open" : ""
-          } ${typingState.is_typing ? "is-typing" : ""}`}
+          } ${typingState.is_typing ? "is-typing" : ""} ${
+            isWaterReminder && !isIslandActive ? "is-water-reminder" : ""
+          }`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onClick={() => {
+            window.focus();
+          }}
         >
           {/* Top Center Camera Lens Dot */}
           <div className="notch-camera-dot" />
 
           {/* Main Content Area */}
           <div className="notch-content-container">
-          {/* Layer 1: Collapsed State (Interactive Eyes) */}
+          {/* Layer 1: Collapsed State (Interactive Eyes & Idle Hydration Reminder) */}
           <div className="notch-collapsed-layer">
             <NotchEyes
               isPlaying={Boolean(media?.playing)}
               isTyping={typingState.is_typing}
               typingSpeed={typingState.speed}
+              isExpanded={isIslandActive}
               onExpand={() => setExpanded(true)}
+              onOpenWater={() => {
+                const waterIdx = PANELS.findIndex((p) => p.id === "water");
+                setPanelIndex(waterIdx !== -1 ? waterIdx : 2);
+                setExpanded(true);
+              }}
+              onWaterReminderChange={(active) => {
+                setIsWaterReminder(active);
+                isWaterReminderRef.current = active;
+              }}
             />
           </div>
 
@@ -425,11 +559,14 @@ export default function App() {
                 </div>
 
                 <button
-                  className={`hdr-settings-btn ${panelIndex === 5 ? "active" : ""}`}
-                  onClick={() => setPanelIndex((prev) => (prev === 5 ? 0 : 5))}
-                  title={panelIndex === 5 ? "Kembali ke Musik" : "Pengaturan Drotch"}
+                  className={`hdr-settings-btn ${currentPanel.id === "settings" ? "active" : ""}`}
+                  onClick={() => {
+                    const settingsIdx = PANELS.findIndex((p) => p.id === "settings");
+                    setPanelIndex((prev) => (prev === settingsIdx ? 0 : settingsIdx));
+                  }}
+                  title={currentPanel.id === "settings" ? "Kembali ke Musik" : "Pengaturan Drotch"}
                 >
-                  <IconSettings size={12} color={panelIndex === 5 ? "#38bdf8" : "currentColor"} />
+                  <IconSettings size={12} color={currentPanel.id === "settings" ? "#38bdf8" : "currentColor"} />
                 </button>
 
                 <button
@@ -455,7 +592,7 @@ export default function App() {
                 transition: isDraggingPanel.current ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
               }}
             >
-              {panelIndex === 0 && (
+              {currentPanel.id === "music" && (
                 <div className={`music-split-container ${lyricsOpen ? "show-lyrics" : ""}`}>
                   <div className="music-player-segment">
                     <MusicPanel
@@ -476,71 +613,85 @@ export default function App() {
                 </div>
               )}
 
-              {panelIndex === 1 && (
+              {currentPanel.id === "weather" && (
                 <div className="carousel-panel-wrapper">
-                  <button className="carousel-nav-btn prev" onClick={prevPanel}>
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
                     <IconChevronLeft size={13} />
                   </button>
                   <div className="carousel-center-stage">
                     <WeatherPanel />
                   </div>
-                  <button className="carousel-nav-btn next" onClick={nextPanel}>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
                     <IconChevronRight size={13} />
                   </button>
                 </div>
               )}
 
-              {panelIndex === 2 && (
+              {currentPanel.id === "water" && (
                 <div className="carousel-panel-wrapper">
-                  <button className="carousel-nav-btn prev" onClick={prevPanel}>
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
                     <IconChevronLeft size={13} />
                   </button>
                   <div className="carousel-center-stage">
                     <WaterWidget />
                   </div>
-                  <button className="carousel-nav-btn next" onClick={nextPanel}>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
                     <IconChevronRight size={13} />
                   </button>
                 </div>
               )}
 
-              {panelIndex === 3 && (
+              {currentPanel.id === "clipboard" && (
                 <div className="carousel-panel-wrapper">
-                  <button className="carousel-nav-btn prev" onClick={prevPanel}>
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
+                    <IconChevronLeft size={13} />
+                  </button>
+                  <div className="carousel-center-stage">
+                    <ClipboardPanel />
+                  </div>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
+                    <IconChevronRight size={13} />
+                  </button>
+                </div>
+              )}
+
+              {currentPanel.id === "todo" && (
+                <div className="carousel-panel-wrapper">
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
                     <IconChevronLeft size={13} />
                   </button>
                   <div className="carousel-center-stage">
                     <TodoPanel />
                   </div>
-                  <button className="carousel-nav-btn next" onClick={nextPanel}>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
                     <IconChevronRight size={13} />
                   </button>
                 </div>
               )}
 
-              {panelIndex === 4 && (
+              {currentPanel.id === "shelf" && (
                 <div className="carousel-panel-wrapper">
-                  <button className="carousel-nav-btn prev" onClick={prevPanel}>
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
                     <IconChevronLeft size={13} />
                   </button>
                   <div className="carousel-center-stage">
                     <ShelfPanel />
                   </div>
-                  <button className="carousel-nav-btn next" onClick={nextPanel}>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
                     <IconChevronRight size={13} />
                   </button>
                 </div>
               )}
 
-              {panelIndex === 5 && (
+              {currentPanel.id === "settings" && (
                 <div className="carousel-panel-wrapper">
-                  <button className="carousel-nav-btn prev" onClick={prevPanel}>
+                  <button className="carousel-nav-btn prev" onClick={prevPanel} title="Sebelumnya (A / ←)">
                     <IconChevronLeft size={13} />
                   </button>
                   <div className="carousel-center-stage">
                     <SettingsPanel />
                   </div>
-                  <button className="carousel-nav-btn next" onClick={nextPanel}>
+                  <button className="carousel-nav-btn next" onClick={nextPanel} title="Berikutnya (D / →)">
                     <IconChevronRight size={13} />
                   </button>
                 </div>

@@ -7,21 +7,67 @@ export function WaterWidget() {
     return saved ? Number(saved) : 1500;
   });
   const [targetMl] = useState<number>(1500);
-  const [notifications, setNotifications] = useState(true);
+  const [notifications, setNotifications] = useState<boolean>(() => {
+    const saved = localStorage.getItem("drotch_water_notifications");
+    return saved !== null ? saved === "true" : true;
+  });
   const [ripple, setRipple] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("drotch_water_ml", currentMl.toString());
   }, [currentMl]);
 
+  useEffect(() => {
+    localStorage.setItem("drotch_water_notifications", notifications.toString());
+  }, [notifications]);
+
+  // Synchronize with external hydration events (e.g. from idle drink reminder animation)
+  useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ amount?: number; total?: number }>;
+      const detail = custom.detail;
+      if (detail && typeof detail.total === "number") {
+        setCurrentMl(detail.total);
+      } else if (detail && typeof detail.amount === "number") {
+        const amt = detail.amount;
+        setCurrentMl((prev) => Math.min(3000, prev + amt));
+      } else {
+        const saved = localStorage.getItem("drotch_water_ml");
+        if (saved) setCurrentMl(Number(saved));
+      }
+    };
+    window.addEventListener("drotch-water-updated", handleUpdate);
+    return () => window.removeEventListener("drotch-water-updated", handleUpdate);
+  }, []);
+
   const addDrink = (ml: number = 250) => {
     setRipple(true);
     setTimeout(() => setRipple(false), 600);
-    setCurrentMl((prev) => Math.min(3000, prev + ml));
+    const next = Math.min(3000, currentMl + ml);
+    setCurrentMl(next);
+    window.dispatchEvent(new CustomEvent("drotch-water-updated", { detail: { total: next } }));
+  };
+
+  const [intervalMins, setIntervalMins] = useState<number>(() => {
+    const saved = localStorage.getItem("drotch_water_interval_mins");
+    return saved ? Number(saved) : 30;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("drotch_water_interval_mins", intervalMins.toString());
+  }, [intervalMins]);
+
+  const cycleInterval = () => {
+    const intervals = [20, 30, 45, 60];
+    const currentIndex = intervals.indexOf(intervalMins);
+    const nextIndex = (currentIndex + 1) % intervals.length;
+    const nextVal = intervals[nextIndex];
+    setIntervalMins(nextVal);
   };
 
   const resetDrink = () => {
     setCurrentMl(0);
+    window.dispatchEvent(new CustomEvent("drotch-water-updated", { detail: { total: 0 } }));
   };
 
   const pct = Math.min(100, Math.round((currentMl / targetMl) * 100));
@@ -44,16 +90,25 @@ export function WaterWidget() {
         <div className="water-main-stat">
           <span className="water-val-num">{currentL}</span>
           <span className="water-val-denom">/{targetL} L</span>
-          <button
-            className={`water-toggle-switch ${notifications ? "on" : "off"}`}
-            onClick={() => setNotifications(!notifications)}
-            title={notifications ? "Notifikasi Harian: Aktif" : "Notifikasi Harian: Nonaktif"}
-            aria-label="Toggle Notifikasi Harian"
-          >
-            <span className="water-toggle-thumb">
-              <IconBell size={9} color={notifications ? "#0284c7" : "#64748b"} />
-            </span>
-          </button>
+          <div className="water-stat-badges">
+            <button
+              className="water-interval-badge"
+              onClick={cycleInterval}
+              title={`Interval Pengingat Minum: Setiap ${intervalMins} menit (Klik untuk ubah 20m/30m/45m/60m)`}
+            >
+              <span>{intervalMins}m</span>
+            </button>
+            <button
+              className={`water-toggle-switch ${notifications ? "on" : "off"}`}
+              onClick={() => setNotifications(!notifications)}
+              title={notifications ? "Pengingat Minum: Aktif" : "Pengingat Minum: Nonaktif"}
+              aria-label="Toggle Pengingat Minum"
+            >
+              <span className="water-toggle-thumb">
+                <IconBell size={9} color={notifications ? "#0284c7" : "#64748b"} />
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="water-substat">

@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod clipboard;
 mod cover;
 mod lyric;
 mod media;
@@ -113,6 +114,38 @@ fn shelf_open(app: AppHandle, path: String) -> Result<(), String> {
     shelf::open(&app, &path)
 }
 
+// ---- Drotch Island Expansion State ----
+#[tauri::command]
+fn set_island_expanded(expanded: bool) {
+    typing::set_island_expanded(expanded);
+}
+
+// ---- Clipboard ----
+#[tauri::command]
+fn clipboard_list(app: AppHandle) -> Result<Vec<clipboard::ClipboardItem>, String> {
+    clipboard::list(&app)
+}
+
+#[tauri::command]
+fn clipboard_copy(app: AppHandle, id: String) -> Result<(), String> {
+    clipboard::copy_item(&app, &id)
+}
+
+#[tauri::command]
+fn clipboard_delete(app: AppHandle, id: String) -> Result<Vec<clipboard::ClipboardItem>, String> {
+    clipboard::delete_item(&app, &id)
+}
+
+#[tauri::command]
+fn clipboard_clear(app: AppHandle, clear_pinned: bool) -> Result<Vec<clipboard::ClipboardItem>, String> {
+    clipboard::clear_all(&app, clear_pinned)
+}
+
+#[tauri::command]
+fn clipboard_toggle_pin(app: AppHandle, id: String) -> Result<Vec<clipboard::ClipboardItem>, String> {
+    clipboard::toggle_pin(&app, &id)
+}
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -137,6 +170,9 @@ fn main() {
 
             // Start privacy-preserving global typing activity listener
             typing::start_typing_listener(app.handle().clone());
+
+            // Start background clipboard history monitor
+            clipboard::start_clipboard_listener(app.handle().clone());
 
             // Load saved settings & activate global shortcut
             if let Ok(s) = settings::get_settings(&app.handle()) {
@@ -164,6 +200,12 @@ fn main() {
             shelf_add,
             shelf_remove,
             shelf_open,
+            set_island_expanded,
+            clipboard_list,
+            clipboard_copy,
+            clipboard_delete,
+            clipboard_clear,
+            clipboard_toggle_pin,
         ])
         .run(tauri::generate_context!())
         .expect("gagal menjalankan Drotch");
