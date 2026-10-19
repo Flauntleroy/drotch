@@ -191,7 +191,12 @@ export function ClipboardPanel() {
           <div className="clipboard-empty-state">
             {search
               ? "Tidak ada klip yang cocok dengan pencarian."
-              : "Belum ada riwayat clipboard. Salin teks apa saja di PC Anda! 📋"}
+              : (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                  <IconClipboard size={13} color="#64748b" />
+                  <span>Belum ada riwayat clipboard. Salin teks apa saja di PC Anda.</span>
+                </div>
+              )}
           </div>
         ) : (
           filteredItems.map((item) => {

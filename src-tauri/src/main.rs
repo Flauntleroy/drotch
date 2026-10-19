@@ -4,6 +4,7 @@ mod clipboard;
 mod cover;
 mod lyric;
 mod media;
+mod power;
 mod settings;
 mod shelf;
 mod store;
@@ -146,6 +147,12 @@ fn clipboard_toggle_pin(app: AppHandle, id: String) -> Result<Vec<clipboard::Cli
     clipboard::toggle_pin(&app, &id)
 }
 
+// ---- Power & Battery ----
+#[tauri::command]
+fn power_get() -> Result<Option<power::PowerInfo>, String> {
+    Ok(power::get_power_info())
+}
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -173,6 +180,9 @@ fn main() {
 
             // Start background clipboard history monitor
             clipboard::start_clipboard_listener(app.handle().clone());
+
+            // Start battery / power status monitor
+            power::start_power_listener(app.handle().clone());
 
             // Load saved settings & activate global shortcut
             if let Ok(s) = settings::get_settings(&app.handle()) {
@@ -206,6 +216,7 @@ fn main() {
             clipboard_delete,
             clipboard_clear,
             clipboard_toggle_pin,
+            power_get,
         ])
         .run(tauri::generate_context!())
         .expect("gagal menjalankan Drotch");

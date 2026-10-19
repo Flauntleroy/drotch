@@ -89,6 +89,10 @@ body,
   height: 182px;
 }
 
+.notch-island-wrapper.is-live-activity:not(.is-expanded) {
+  width: 295px;
+}
+
 /* ---------------- The Single Unified Island Shape ---------------- */
 .notch-island {
   position: relative;
@@ -369,6 +373,147 @@ body,
   pointer-events: none;
   /* On open: instant fast fade out in 60ms */
   transition: opacity 0.06s ease-in 0s, transform 0.06s ease-in 0s;
+}
+
+/* ---------------- Live Activity Container & Chip ---------------- */
+.collapsed-eyes-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.collapsed-eyes-container.is-hidden {
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+
+.live-activity-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+.live-activity-container.is-active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.live-activity-chip {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.live-chip-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.live-chip-icon-glow {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+}
+
+.live-chip-icon-glow.clipboard {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.live-chip-icon-glow.power {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.live-chip-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+}
+
+.live-chip-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.live-chip-snippet {
+  font-size: 9.5px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 125px;
+}
+
+.live-chip-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.live-chip-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1.5px 6px;
+  border-radius: 9999px;
+  letter-spacing: 0.2px;
+}
+
+.live-chip-badge.cyan {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.live-chip-badge.green {
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.live-chip-badge.yellow {
+  background: rgba(234, 179, 8, 0.18);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
 }
 
 .interactive-eyes-wrapper {

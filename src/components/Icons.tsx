@@ -4,6 +4,7 @@ interface IconProps {
   size?: number;
   className?: string;
   color?: string;
+  style?: React.CSSProperties;
 }
 
 export function IconPlay({ size = 16, className = "", color = "currentColor" }: IconProps) {
@@ -376,5 +377,47 @@ export function IconSearch({ size = 13, className = "", color = "currentColor" }
     </svg>
   );
 }
+
+export function IconBattery({ size = 14, className = "", color = "currentColor", percent = 100 }: IconProps & { percent?: number }) {
+  const fillWidth = Math.max(1, Math.min(10, Math.round((percent / 100) * 10)));
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="7" width="16" height="10" rx="2" ry="2" />
+      <line x1="20" y1="11" x2="20" y2="13" />
+      <rect x="4" y="9" width={fillWidth} height="6" rx="1" fill={color} stroke="none" />
+    </svg>
+  );
+}
+
+export function IconBolt({ size = 13, className = "", color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+export function IconCoffee({ size = 13, className = "", color = "currentColor", style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+      <line x1="6" y1="1" x2="6" y2="4" />
+      <line x1="10" y1="1" x2="10" y2="4" />
+      <line x1="14" y1="1" x2="14" y2="4" />
+    </svg>
+  );
+}
+
+export function IconClipboardCheck({ size = 13, className = "", color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      <polyline points="9 14 11 16 15 11" strokeWidth="2" />
+    </svg>
+  );
+}
+
 
 

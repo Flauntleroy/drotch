@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { IconCheck, IconTrash, IconPlus } from "../components/Icons";
+import { IconCheck, IconTrash, IconPlus, IconCoffee } from "../components/Icons";
 
 interface Task {
   id: string;
@@ -30,7 +30,9 @@ export function TodoMini() {
   const done = tasks.filter((t) => t.done).length;
   return (
     <div className="mini-music-row">
-      <span className="mini-icon">✅</span>
+      <span className="mini-icon">
+        <IconCheck size={12} color="#22c55e" />
+      </span>
       <span className="mini-track-text">
         {tasks.length ? `${done}/${tasks.length} tugas selesai` : "Belum ada tugas"}
       </span>
@@ -71,7 +73,10 @@ export function TodoPanel() {
 
       <div className="todo-items-scroll">
         {tasks.length === 0 ? (
-          <div className="todo-empty-state">Semua tugas selesai. Santai dulu! ☕</div>
+          <div className="todo-empty-state">
+            <IconCoffee size={13} color="#64748b" style={{ display: "inline-block", verticalAlign: "middle", marginRight: "5px" }} />
+            Semua tugas selesai. Santai dulu!
+          </div>
         ) : (
           tasks.map((t) => (
             <div key={t.id} className={`todo-item-row ${t.done ? "is-done" : ""}`}>

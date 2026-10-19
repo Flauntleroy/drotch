@@ -18,8 +18,23 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconSettings,
+  IconClipboardCheck,
+  IconBolt,
+  IconBattery,
+  IconCheck,
 } from "./components/Icons";
 import "./styles.css";
+
+interface LiveActivity {
+  id: string;
+  type: "clipboard" | "power";
+  title: string;
+  subtitle?: string;
+  iconType: "clipboard" | "battery" | "bolt";
+  color?: string;
+  percent?: number;
+  snippet?: string;
+}
 
 type PanelId = "music" | "weather" | "water" | "clipboard" | "todo" | "shelf" | "settings";
 
@@ -99,6 +114,103 @@ export default function App() {
       .catch((err) => {
         console.error("Failed to listen to typing-activity:", err);
       });
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  const [liveActivity, setLiveActivity] = useState<LiveActivity | null>(null);
+  const liveActivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevClipboardIdRef = useRef<string | null>(null);
+
+  const triggerLiveActivity = (activity: LiveActivity, durationMs: number = 2400) => {
+    if (liveActivityTimerRef.current) {
+      clearTimeout(liveActivityTimerRef.current);
+    }
+    setLiveActivity(activity);
+    liveActivityTimerRef.current = setTimeout(() => {
+      setLiveActivity(null);
+      liveActivityTimerRef.current = null;
+    }, durationMs);
+  };
+
+  const handleLiveActivityClick = () => {
+    if (!liveActivity) return;
+    const act = liveActivity;
+    setLiveActivity(null);
+    if (liveActivityTimerRef.current) {
+      clearTimeout(liveActivityTimerRef.current);
+    }
+    if (act.type === "clipboard") {
+      const clipIdx = PANELS.findIndex((p) => p.id === "clipboard");
+      setPanelIndex(clipIdx !== -1 ? clipIdx : 0);
+      setExpanded(true);
+    } else {
+      setExpanded(true);
+    }
+  };
+
+  // Live Activity: Clipboard Copied Toast
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    listen<Array<{ id: string; preview: string; content: string }>>("clipboard-updated", (event) => {
+      const items = event.payload;
+      if (!items || items.length === 0) return;
+      const latest = items[0];
+
+      if (prevClipboardIdRef.current && prevClipboardIdRef.current !== latest.id) {
+        if (!expandedRef.current) {
+          triggerLiveActivity(
+            {
+              id: latest.id,
+              type: "clipboard",
+              title: "Klip Tersalin",
+              snippet: latest.preview.replace(/\s+/g, " ").slice(0, 24),
+              iconType: "clipboard",
+              color: "#38bdf8",
+            },
+            2400
+          );
+        }
+      }
+      prevClipboardIdRef.current = latest.id;
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  // Live Activity: Power / Charging Status
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    listen<{ is_plugged: boolean; percent: number; has_battery: boolean }>(
+      "power-status-changed",
+      (event) => {
+        const info = event.payload;
+        if (!info || !info.has_battery) return;
+
+        if (!expandedRef.current) {
+          triggerLiveActivity(
+            {
+              id: String(Date.now()),
+              type: "power",
+              title: info.is_plugged ? "Mengisi Daya" : "Mode Baterai",
+              subtitle: `${info.percent}%`,
+              iconType: info.is_plugged ? "bolt" : "battery",
+              color: info.is_plugged ? "#22c55e" : "#eab308",
+              percent: info.percent,
+            },
+            2800
+          );
+        }
+      }
+    ).then((fn) => {
+      unlisten = fn;
+    });
 
     return () => {
       if (unlisten) unlisten();
@@ -458,7 +570,9 @@ export default function App() {
       <div
         className={`notch-island-wrapper ${isIslandActive ? "is-expanded" : ""} ${
           isCurrentLyricsSplit ? "is-lyrics-open" : ""
-        } ${isWaterReminder && !isIslandActive ? "is-water-reminder" : ""}`}
+        } ${isWaterReminder && !isIslandActive ? "is-water-reminder" : ""} ${
+          liveActivity && !isIslandActive ? "is-live-activity" : ""
+        }`}
       >
         {/* Seamless 12px Top Screen Bezel Invert Fillets (Ears) on Wrapper */}
         <div className="notch-ear ear-left" />
@@ -504,24 +618,70 @@ export default function App() {
 
           {/* Main Content Area */}
           <div className="notch-content-container">
-          {/* Layer 1: Collapsed State (Interactive Eyes & Idle Hydration Reminder) */}
+          {/* Layer 1: Collapsed State (Interactive Eyes & Idle Hydration Reminder & Live Activities) */}
           <div className="notch-collapsed-layer">
-            <NotchEyes
-              isPlaying={Boolean(media?.playing)}
-              isTyping={typingState.is_typing}
-              typingSpeed={typingState.speed}
-              isExpanded={isIslandActive}
-              onExpand={() => setExpanded(true)}
-              onOpenWater={() => {
-                const waterIdx = PANELS.findIndex((p) => p.id === "water");
-                setPanelIndex(waterIdx !== -1 ? waterIdx : 2);
-                setExpanded(true);
-              }}
-              onWaterReminderChange={(active) => {
-                setIsWaterReminder(active);
-                isWaterReminderRef.current = active;
-              }}
-            />
+            <div
+              className={`live-activity-container ${liveActivity ? "is-active" : ""}`}
+              onClick={handleLiveActivityClick}
+            >
+              {liveActivity && (
+                <div className="live-activity-chip">
+                  <div className="live-chip-left">
+                    <span className={`live-chip-icon-glow ${liveActivity.type}`}>
+                      {liveActivity.iconType === "clipboard" && (
+                        <IconClipboardCheck size={14} color="#38bdf8" />
+                      )}
+                      {liveActivity.iconType === "bolt" && (
+                        <IconBolt size={14} color="#22c55e" />
+                      )}
+                      {liveActivity.iconType === "battery" && (
+                        <IconBattery size={14} color="#eab308" percent={liveActivity.percent} />
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="live-chip-center">
+                    <span className="live-chip-title">{liveActivity.title}</span>
+                    {liveActivity.snippet && (
+                      <span className="live-chip-snippet">{liveActivity.snippet}</span>
+                    )}
+                  </div>
+
+                  <div className="live-chip-right">
+                    {liveActivity.type === "clipboard" && (
+                      <span className="live-chip-badge cyan">
+                        <IconCheck size={9} color="#38bdf8" />
+                        <span>Disalin</span>
+                      </span>
+                    )}
+                    {liveActivity.type === "power" && (
+                      <span className={`live-chip-badge ${liveActivity.iconType === "bolt" ? "green" : "yellow"}`}>
+                        {liveActivity.subtitle}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={`collapsed-eyes-container ${liveActivity ? "is-hidden" : ""}`}>
+              <NotchEyes
+                isPlaying={Boolean(media?.playing)}
+                isTyping={typingState.is_typing}
+                typingSpeed={typingState.speed}
+                isExpanded={isIslandActive}
+                onExpand={() => setExpanded(true)}
+                onOpenWater={() => {
+                  const waterIdx = PANELS.findIndex((p) => p.id === "water");
+                  setPanelIndex(waterIdx !== -1 ? waterIdx : 2);
+                  setExpanded(true);
+                }}
+                onWaterReminderChange={(active) => {
+                  setIsWaterReminder(active);
+                  isWaterReminderRef.current = active;
+                }}
+              />
+            </div>
           </div>
 
           {/* Layer 2: Expanded State (Rich Content) */}
